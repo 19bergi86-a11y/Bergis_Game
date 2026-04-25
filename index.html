@@ -3,65 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bergis Game</title>
+    <title>Bergis Game BLE</title>
     <link href="https://googleapis.com" rel="stylesheet">
     <style>
         body { 
             background: #111; color: white; font-family: 'Press Start 2P', cursive; 
             margin: 0; padding: 0; overflow: hidden; touch-action: manipulation;
-            display: flex; flex-direction: column; height: 100vh;
+            display: flex; flex-direction: column; height: 100vh; width: 100vw;
         }
-        
-        /* Obere Sektion */
-        .header { padding: 20px 10px; flex: 0 1 auto; }
-        h1 { font-size: 18px; color: #ff00ff; text-shadow: 2px 2px #000; margin: 0 0 15px 0; }
-        #stats { color: gold; font-size: 14px; margin-bottom: 15px; border: 1px solid #444; padding: 10px; display: inline-block; }
-
-        .admin-row { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; }
-        .adm-btn { 
-            padding: 12px; font-family: 'Press Start 2P'; font-size: 10px; border-radius: 8px; border: none; 
-            box-shadow: 0 4px #000; cursor: pointer;
-        }
-        #btnConnect { background: gold; color: black; }
-        #btnDisconnect { background: #ff4757; color: white; display: none; }
-        #btnStart { background: #00ff00; color: black; width: 80%; font-size: 14px; }
-
-        /* UNTERE SEKTION: SPIEL-BUTTONS (RIESIG) */
-        .game-area {
-            flex: 1 1 auto;
-            display: flex;
-            justify-content: space-evenly;
-            align-items: center;
-            background: #1a1a1a;
-            border-top: 3px solid #333;
-            padding-bottom: 20px;
-        }
-
-        .circle-btn {
-            width: 28vw; height: 28vw; 
-            max-width: 110px; max-height: 110px;
-            border-radius: 50%; border: 6px solid rgba(0,0,0,0.3);
+        .header { padding: 15px; flex: 0 0 auto; background: #1a1a1a; border-bottom: 2px solid #333; }
+        h1 { font-size: 14px; color: #ff00ff; margin: 0 0 10px 0; }
+        #stats { color: gold; font-size: 12px; margin-bottom: 10px; }
+        .admin-row { display: flex; justify-content: center; gap: 10px; }
+        .adm-btn { padding: 12px; font-family: 'Press Start 2P'; font-size: 10px; border-radius: 8px; border: none; cursor: pointer; }
+        #btnConnect { background: gold; color: black; width: 100%; }
+        #btnDisconnect { background: #ff4757; color: white; display: none; width: 100%; }
+        #btnStart { background: #444; color: white; width: 100%; margin-top: 10px; height: 50px; font-size: 16px; box-shadow: 0 4px #000; }
+        .game-area { flex: 1; display: flex; justify-content: space-evenly; align-items: center; background: #111; }
+        .circle-btn { 
+            width: 28vw; height: 28vw; max-width: 120px; max-height: 120px;
+            border-radius: 50%; border: 5px solid rgba(0,0,0,0.4);
             color: white; font-family: 'Press Start 2P'; font-size: 24px;
-            position: relative; cursor: pointer;
+            cursor: pointer; position: relative;
         }
-
-        .red { background: radial-gradient(circle at 30% 30%, #ff6b81, #ff4757); box-shadow: 0 10px 0 #a32d37; }
-        .green { background: radial-gradient(circle at 30% 30%, #7bed9f, #2ed573); box-shadow: 0 10px 0 #1e8c4b; }
-        .blue { background: radial-gradient(circle at 30% 30%, #70a1ff, #1e90ff); box-shadow: 0 10px 0 #145da0; }
-
-        .circle-btn:active { transform: translateY(8px); box-shadow: 0 2px 0 #000; }
+        .red { background: radial-gradient(circle at 30% 30%, #ff6b81, #ff4757); box-shadow: 0 8px 0 #a32d37; }
+        .green { background: radial-gradient(circle at 30% 30%, #7bed9f, #2ed573); box-shadow: 0 8px 0 #1e8c4b; }
+        .blue { background: radial-gradient(circle at 30% 30%, #70a1ff, #1e90ff); box-shadow: 0 8px 0 #145da0; }
+        .circle-btn:active { transform: translateY(6px); box-shadow: 0 2px 0 #000; }
     </style>
 </head>
 <body>
 
     <div class="header">
         <h1>BERGIS GAME</h1>
-        <div id="stats">HIGH: <span id="hs">0</span></div>
+        <div id="stats">HIGH: <span id="hs">---</span></div>
         <div class="admin-row">
             <button id="btnConnect" class="adm-btn" onclick="connectBT()">VERBINDEN</button>
             <button id="btnDisconnect" class="adm-btn" onclick="disconnectBT()">TRENNEN</button>
         </div>
-        <button id="btnStart" class="adm-btn" onclick="startGame()">START GAME</button>
+        <button id="btnStart" class="adm-btn" onclick="startGame()">START</button>
     </div>
 
     <div class="game-area">
@@ -71,45 +51,49 @@
     </div>
 
     <script>
-        let charac;
-        const startSound = new Audio('https://freesound.org');
-        const loseSound = new Audio('https://freesound.org');
+        let device, server, charac;
+        const startSound = new Audio('https://google.com');
+        const loseSound = new Audio('https://google.com');
 
-        async function connectBT() {
-            // Audio-Unlock für mobile Browser
+        function unlockAudio() {
             startSound.play().then(() => { startSound.pause(); startSound.currentTime = 0; });
             loseSound.play().then(() => { loseSound.pause(); loseSound.currentTime = 0; });
+        }
 
+        async function connectBT() {
+            unlockAudio();
             try {
-                const device = await navigator.bluetooth.requestDevice({
+                device = await navigator.bluetooth.requestDevice({
                     filters: [{ name: 'Bergis-Game-BLE' }],
                     optionalServices: ['4fafc201-1fb5-459e-8fcc-c5c9c331914b']
                 });
-                const server = await device.gatt.connect();
+                device.addEventListener('gattserverdisconnected', onDisconnected);
+                server = await device.gatt.connect();
                 const service = await server.getPrimaryService('4fafc201-1fb5-459e-8fcc-c5c9c331914b');
                 charac = await service.getCharacteristic('beb5483e-36e1-4688-b7f5-ea07361b26a8');
                 
                 await charac.startNotifications();
                 charac.addEventListener('characteristicvaluechanged', (e) => {
                     let val = new TextDecoder().decode(e.target.value);
-                    if (val === "L") { 
-                        loseSound.play(); 
-                        if(navigator.vibrate) navigator.vibrate(300);
-                        alert("GAME OVER!");
-                    } else if (val === "H") {
-                        if(navigator.vibrate) navigator.vibrate(60);
-                    } else {
-                        document.getElementById('hs').innerText = val;
-                    }
+                    if (val === "L") { loseSound.play(); if(navigator.vibrate) navigator.vibrate(300); alert("GAME OVER!"); }
+                    else if (val === "H") { if(navigator.vibrate) navigator.vibrate(60); }
+                    else { document.getElementById('hs').innerText = val; }
                 });
+
+                const initialVal = await charac.readValue();
+                document.getElementById('hs').innerText = new TextDecoder().decode(initialVal);
                 document.getElementById('btnConnect').style.display = 'none';
-                document.getElementById('btnDisconnect').style.display = 'inline-block';
+                document.getElementById('btnDisconnect').style.display = 'block';
             } catch (err) { console.log(err); }
         }
 
         function startGame() { if(charac) { startSound.play(); send('S'); } }
         function send(cmd) { if(charac) charac.writeValue(new TextEncoder().encode(cmd)); }
-        function disconnectBT() { location.reload(); }
+        function disconnectBT() { if(device) device.gatt.disconnect(); }
+        function onDisconnected() { 
+            document.getElementById('btnConnect').style.display = 'block'; 
+            document.getElementById('btnDisconnect').style.display = 'none'; 
+        }
     </script>
 </body>
 </html>
