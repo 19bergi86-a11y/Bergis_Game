@@ -6,15 +6,17 @@
     <link href="https://googleapis.com" rel="stylesheet">
     <style>
         body { background: #1a1a1a; color: white; font-family: 'Press Start 2P', cursive; text-align: center; }
-        .btn { width: 80%; height: 70px; margin: 10px; border-radius: 15px; border: none; font-family: 'Press Start 2P'; color: white; cursor: pointer; }
+        .btn { width: 80%; height: 70px; margin: 10px; border-radius: 15px; border: none; font-family: 'Press Start 2P'; font-size: 14px; color: white; cursor: pointer; }
         .red { background: #ff4757; } .green { background: #2ed573; } .blue { background: #1e90ff; }
-        .connect { background: gold; color: black; margin-bottom: 30px; }
+        .connect { background: gold; color: black; }
+        #stats { margin: 20px; color: gold; font-size: 12px; }
     </style>
 </head>
 <body>
     <h1>BERGIS BLE</h1>
-    <button class="btn connect" onclick="connectBT()">VERBINDEN</button>
-    <button class="btn" style="background:gray" onclick="send('S')">START</button>
+    <button class="btn connect" onclick="connectBT()">1. VERBINDEN</button>
+    <div id="stats">HIGHSCORE: <span id="hs">?</span></div>
+    <button class="btn" style="background:gray" onclick="startGame()">2. START</button>
     <hr>
     <button class="btn red" onclick="send('R')">RED</button>
     <button class="btn green" onclick="send('G')">GREEN</button>
@@ -22,6 +24,10 @@
 
     <script>
         let charac;
+        // Sound-Effekte (Beispiel-URLs, du kannst eigene nutzen)
+        const startSound = new Audio('https://google.com');
+        const loseSound = new Audio('https://google.com');
+
         async function connectBT() {
             const device = await navigator.bluetooth.requestDevice({
                 filters: [{ name: 'Bergis-Game-BLE' }],
@@ -30,14 +36,24 @@
             const server = await device.gatt.connect();
             const service = await server.getPrimaryService('4fafc201-1fb5-459e-8fcc-c5c9c331914b');
             charac = await service.getCharacteristic('beb5483e-36e1-4688-b7f5-ea07361b26a8');
-            alert("Verbunden!");
+            
+            // Highscore vom ESP32 lesen
+            const value = await charac.readValue();
+            document.getElementById('hs').innerText = new TextDecoder().decode(value);
+            alert("Bereit!");
+        }
+
+        function startGame() {
+            startSound.play();
+            send('S');
         }
 
         function send(cmd) {
-            if (charac) {
-                charac.writeValue(new TextEncoder().encode(cmd));
-            }
+            if (charac) charac.writeValue(new TextEncoder().encode(cmd));
         }
+
+        // Hinweis: Für Game-Over Sound müsste der ESP32 eine Nachricht "L" (Lost) senden.
+        // Das können wir einbauen, wenn der ESP32 zurückfunken soll!
     </script>
 </body>
 </html>
