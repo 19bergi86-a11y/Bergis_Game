@@ -3,74 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bergis BLE Controller</title>
+    <title>Bergis Game</title>
     <link href="https://googleapis.com" rel="stylesheet">
     <style>
-        body { background: #1a1a1a; color: white; font-family: 'Press Start 2P', cursive; text-align: center; margin: 0; padding: 20px; touch-action: manipulation; overflow: hidden; }
-        h1 { color: #ff00ff; text-shadow: 3px 3px #550055; font-size: 16px; }
-        #stats { margin: 15px auto; color: gold; font-size: 10px; border: 2px solid gold; padding: 10px; border-radius: 10px; width: fit-content; }
-        .btn { border: none; font-family: 'Press Start 2P'; cursor: pointer; transition: all 0.05s; color: white; position: relative; }
-        .connect { width: 90%; height: 50px; border-radius: 10px; background: gold; color: black; font-size: 12px; box-shadow: 0 5px #b8860b; }
-        .disconnect { width: 90%; height: 50px; border-radius: 10px; background: #ff4757; display: none; font-size: 12px; box-shadow: 0 5px #a32d37; }
-        .start { width: 90%; height: 60px; background: #444; border-radius: 10px; font-size: 16px; margin: 20px 0; box-shadow: 0 6px #222; }
-        .connect:active, .disconnect:active, .start:active { transform: translateY(3px); box-shadow: 0 2px #222; }
-        .game-controls { display: flex; justify-content: center; gap: 20px; margin-top: 40px; }
-        .circle-btn { width: 85px; height: 85px; border-radius: 50%; font-size: 18px; display: flex; align-items: center; justify-content: center; border: 4px solid rgba(0,0,0,0.3); }
-        .red { background: radial-gradient(circle at 30% 30%, #ff6b81, #ff4757); box-shadow: 0 8px 0 #a32d37, 0 12px 15px rgba(0,0,0,0.5); }
-        .green { background: radial-gradient(circle at 30% 30%, #7bed9f, #2ed573); box-shadow: 0 8px 0 #1e8c4b, 0 12px 15px rgba(0,0,0,0.5); }
-        .blue { background: radial-gradient(circle at 30% 30%, #70a1ff, #1e90ff); box-shadow: 0 8px 0 #145da0, 0 12px 15px rgba(0,0,0,0.5); }
-        .circle-btn:active { transform: translateY(6px); box-shadow: 0 2px 0 #222, 0 4px 8px rgba(0,0,0,0.6); }
-        hr { border: 0; border-top: 2px solid #333; margin: 30px 0; }
+        body { 
+            background: #111; color: white; font-family: 'Press Start 2P', cursive; 
+            margin: 0; padding: 0; overflow: hidden; touch-action: manipulation;
+            display: flex; flex-direction: column; height: 100vh;
+        }
+        
+        /* Obere Sektion */
+        .header { padding: 20px 10px; flex: 0 1 auto; }
+        h1 { font-size: 18px; color: #ff00ff; text-shadow: 2px 2px #000; margin: 0 0 15px 0; }
+        #stats { color: gold; font-size: 14px; margin-bottom: 15px; border: 1px solid #444; padding: 10px; display: inline-block; }
+
+        .admin-row { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; }
+        .adm-btn { 
+            padding: 12px; font-family: 'Press Start 2P'; font-size: 10px; border-radius: 8px; border: none; 
+            box-shadow: 0 4px #000; cursor: pointer;
+        }
+        #btnConnect { background: gold; color: black; }
+        #btnDisconnect { background: #ff4757; color: white; display: none; }
+        #btnStart { background: #00ff00; color: black; width: 80%; font-size: 14px; }
+
+        /* UNTERE SEKTION: SPIEL-BUTTONS (RIESIG) */
+        .game-area {
+            flex: 1 1 auto;
+            display: flex;
+            justify-content: space-evenly;
+            align-items: center;
+            background: #1a1a1a;
+            border-top: 3px solid #333;
+            padding-bottom: 20px;
+        }
+
+        .circle-btn {
+            width: 28vw; height: 28vw; 
+            max-width: 110px; max-height: 110px;
+            border-radius: 50%; border: 6px solid rgba(0,0,0,0.3);
+            color: white; font-family: 'Press Start 2P'; font-size: 24px;
+            position: relative; cursor: pointer;
+        }
+
+        .red { background: radial-gradient(circle at 30% 30%, #ff6b81, #ff4757); box-shadow: 0 10px 0 #a32d37; }
+        .green { background: radial-gradient(circle at 30% 30%, #7bed9f, #2ed573); box-shadow: 0 10px 0 #1e8c4b; }
+        .blue { background: radial-gradient(circle at 30% 30%, #70a1ff, #1e90ff); box-shadow: 0 10px 0 #145da0; }
+
+        .circle-btn:active { transform: translateY(8px); box-shadow: 0 2px 0 #000; }
     </style>
 </head>
 <body>
-    <h1>BERGIS BLE</h1>
-    <button id="btnConnect" class="btn connect" onclick="connectBT()">VERBINDEN</button>
-    <button id="btnDisconnect" class="btn disconnect" onclick="disconnectBT()">TRENNEN</button>
-    <div id="stats">HIGHSCORE: <span id="hs">---</span></div>
-    <button class="btn start" onclick="startGame()">START</button>
-    <hr>
-    <div class="game-controls">
-        <button class="btn circle-btn red" onclick="send('R')">R</button>
-        <button class="btn circle-btn green" onclick="send('G')">G</button>
-        <button class="btn circle-btn blue" onclick="send('B')">B</button>
+
+    <div class="header">
+        <h1>BERGIS GAME</h1>
+        <div id="stats">HIGH: <span id="hs">0</span></div>
+        <div class="admin-row">
+            <button id="btnConnect" class="adm-btn" onclick="connectBT()">VERBINDEN</button>
+            <button id="btnDisconnect" class="adm-btn" onclick="disconnectBT()">TRENNEN</button>
+        </div>
+        <button id="btnStart" class="adm-btn" onclick="startGame()">START GAME</button>
+    </div>
+
+    <div class="game-area">
+        <button class="circle-btn red" onclick="send('R')">R</button>
+        <button class="circle-btn green" onclick="send('G')">G</button>
+        <button class="circle-btn blue" onclick="send('B')">B</button>
     </div>
 
     <script>
-        let device, server, charac;
+        let charac;
         const startSound = new Audio('https://freesound.org');
         const loseSound = new Audio('https://freesound.org');
 
         async function connectBT() {
+            // Audio-Unlock für mobile Browser
             startSound.play().then(() => { startSound.pause(); startSound.currentTime = 0; });
             loseSound.play().then(() => { loseSound.pause(); loseSound.currentTime = 0; });
+
             try {
-                device = await navigator.bluetooth.requestDevice({
+                const device = await navigator.bluetooth.requestDevice({
                     filters: [{ name: 'Bergis-Game-BLE' }],
                     optionalServices: ['4fafc201-1fb5-459e-8fcc-c5c9c331914b']
                 });
-                device.addEventListener('gattserverdisconnected', onDisconnected);
-                server = await device.gatt.connect();
+                const server = await device.gatt.connect();
                 const service = await server.getPrimaryService('4fafc201-1fb5-459e-8fcc-c5c9c331914b');
                 charac = await service.getCharacteristic('beb5483e-36e1-4688-b7f5-ea07361b26a8');
+                
                 await charac.startNotifications();
-                charac.addEventListener('characteristicvaluechanged', (event) => {
-                    let val = new TextDecoder().decode(event.target.value);
-                    if (val === "L") { loseSound.play(); navigator.vibrate(300); alert("GAME OVER!"); }
-                    else if (val === "H") { navigator.vibrate(50); }
-                    else { document.getElementById('hs').innerText = val; }
+                charac.addEventListener('characteristicvaluechanged', (e) => {
+                    let val = new TextDecoder().decode(e.target.value);
+                    if (val === "L") { 
+                        loseSound.play(); 
+                        if(navigator.vibrate) navigator.vibrate(300);
+                        alert("GAME OVER!");
+                    } else if (val === "H") {
+                        if(navigator.vibrate) navigator.vibrate(60);
+                    } else {
+                        document.getElementById('hs').innerText = val;
+                    }
                 });
-                const initialVal = await charac.readValue();
-                document.getElementById('hs').innerText = new TextDecoder().decode(initialVal);
                 document.getElementById('btnConnect').style.display = 'none';
                 document.getElementById('btnDisconnect').style.display = 'inline-block';
-            } catch (error) { console.log(error); }
+            } catch (err) { console.log(err); }
         }
 
-        function disconnectBT() { if (device && device.gatt.connected) device.gatt.disconnect(); }
-        function onDisconnected() { document.getElementById('btnConnect').style.display = 'inline-block'; document.getElementById('btnDisconnect').style.display = 'none'; }
-        function startGame() { if (charac) { startSound.play(); send('S'); } else { alert("Erst Verbinden!"); } }
-        function send(cmd) { if (charac) charac.writeValue(new TextEncoder().encode(cmd)); }
+        function startGame() { if(charac) { startSound.play(); send('S'); } }
+        function send(cmd) { if(charac) charac.writeValue(new TextEncoder().encode(cmd)); }
+        function disconnectBT() { location.reload(); }
     </script>
 </body>
 </html>
